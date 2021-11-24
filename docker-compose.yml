@@ -1,6 +1,6 @@
 version: "3"
 services:
-  es:
+  es2: # for app.py host
     image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
     container_name: es2
     environment:
@@ -12,10 +12,13 @@ services:
     volumes:
       - esdata1:/usr/share/elasticsearch/data
   web:
-    image: fmchan2/foodtrucks-web
+    #image: fmchan2/foodtrucks-web
+    build: . # replaced image with build
     command: python3 app.py
+    environment:
+      - DEBUG=True # set an env var for flask
     depends_on:
-      - es2
+      - es2 #refer to container_name
     ports:
       - 2000:5000
     volumes:

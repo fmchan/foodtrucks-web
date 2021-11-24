@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, render_template
 import sys
 import requests
 
-es = Elasticsearch(host='es')
+es = Elasticsearch(host='es2') #service name
 
 app = Flask(__name__)
 
@@ -48,6 +48,11 @@ def check_and_load_index():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# add a new hello route
+@app.route('/hello')
+def hello():
+  return "hello world3!"
 
 @app.route('/debug')
 def test_es():
