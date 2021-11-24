@@ -2,20 +2,22 @@ version: "3"
 services:
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
-    container_name: es
+    container_name: es2
     environment:
       - discovery.type=single-node
     ports:
-      - 9200:9200
+      - 1200:9200
+    expose:
+      - 1200
     volumes:
       - esdata1:/usr/share/elasticsearch/data
   web:
-    image: prakhar1989/foodtrucks-web
+    image: fmchan2/foodtrucks-web
     command: python3 app.py
     depends_on:
-      - es
+      - es2
     ports:
-      - 5000:5000
+      - 2000:5000
     volumes:
       - ./flask-app:/opt/flask-app
 volumes:
