@@ -1,16 +1,85 @@
 version: "3"
 services:
-  es2: # for app.py host
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
-    container_name: es2
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+    container_name: es01
     environment:
-      - discovery.type=single-node
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
     ports:
       - 1200:9200
+      - 1300:9300
     expose:
       - 1200
+    networks:
+      - dickens_net
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test: curl -s http://localhost:1200/_cluster/health | grep -vq '"status":"red"'
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+    container_name: es02
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - data02:/usr/share/elasticsearch/data
+    networks:
+      - dickens_net
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+    container_name: es03
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data03:/usr/share/elasticsearch/data
+    networks:
+      - dickens_net
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.15.2
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+    networks:
+      - dickens_net
+    healthcheck:
+      interval: 10s
+      retries: 20
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:5601/api/status
   web:
     #image: fmchan2/foodtrucks-web
     build: . # replaced image with build
@@ -18,11 +87,25 @@ services:
     environment:
       - DEBUG=True # set an env var for flask
     depends_on:
-      - es2 #refer to container_name
+      es01: #refer to container_name
+          condition: service_healthy
+      kibana:
+          condition: service_healthy
     ports:
       - 2000:5000
     volumes:
       - ./flask-app:/opt/flask-app
+    networks:
+      - dickens_net
 volumes:
-    esdata1:
-      driver: local
+  data01:
+    driver: local
+  data02:
+    driver: local
+  data03:
+    driver: local
+
+networks:
+  dickens_net:
+    name: dickens_net
+    driver: bridge

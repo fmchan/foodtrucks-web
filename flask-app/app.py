@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, render_template
 import sys
 import requests
 
-es = Elasticsearch(host='es2') #service name
+es = Elasticsearch(['es01','es02','es03']) #service name
 
 app = Flask(__name__)
 
