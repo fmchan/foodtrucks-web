@@ -1,4 +1,9 @@
-SF Food Trucks
+fmhcan Docker Demo - SF Food Trucks
+
+- This demo is based on [docker-curriculum](http://prakhar.me/docker-curriculum)
+- Added ES cluster and kibana with healthcheck
+- Added git workflow: commit to docker hub once master update
+
 ===
 
 > San Francisco's finger-licking street food now at your fingertips.
@@ -27,5 +32,3 @@ The app can also be easily deployed on AWS Elastic Container Service. Once you h
 ```
 $ ./setup-aws-ecs.sh
 ```
-
-Learn more at [docker-curriculum](http://prakhar.me/docker-curriculum).
